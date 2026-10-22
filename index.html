@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Altairex — Delivering the new age</title>
+<title>Altairex Research</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 112 112'%3E%3Crect x='-14' y='-14' width='112' height='112' rx='24' fill='%230D0D0D'/%3E%3Cg fill='%23F5F4F0'%3E%3Cg opacity='.3'%3E%3Crect width='24' height='24' rx='5'/%3E%3Crect x='60' width='24' height='24' rx='5'/%3E%3Crect x='30' y='60' width='24' height='24' rx='5'/%3E%3C/g%3E%3Crect x='30' width='24' height='24' rx='5'/%3E%3Crect y='30' width='24' height='24' rx='5'/%3E%3Crect x='30' y='30' width='24' height='24' rx='5'/%3E%3Crect x='60' y='30' width='24' height='24' rx='5'/%3E%3Crect y='60' width='24' height='24' rx='5'/%3E%3Crect x='60' y='60' width='24' height='24' rx='5'/%3E%3C/g%3E%3C/svg%3E">
 <!-- Form endpoint for slide 6 (Formspree). Empty = not connected: the form shows a copy/download fallback instead. -->
 <script>window.ALTAIREX_SUBMIT_URL = "https://formspree.io/f/mbgdnend";</script>
 <script>document.documentElement.classList.toggle("portrait", innerWidth < innerHeight);</script>
-<meta name="description" content="Altairex is a product studio for the AI transition. We find the workflows worth changing, then build the systems that change them.">
+<meta name="description" content="Altairex is an AI product studio. We experiment, then productize what real demand and AI workflows can support. Workspace, Imogen and UCGF are in beta.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&display=swap" rel="stylesheet">
@@ -209,11 +210,25 @@
   .step small { font-family: var(--mono); font-size: 20px; letter-spacing: .12em; opacity: .6; }
   .step b { font-size: 36px; line-height: 1.05; letter-spacing: -.035em; font-weight: 600; }
 
+  /* small caption under the slide 4 subtitle */
+  .note { font-family: var(--mono); font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: rgba(13,13,13,.6); }
+  html:not(.portrait) #s4 .sub { top: 600px; }
+  html:not(.portrait) #s4 .note { position: absolute; left: var(--pad); top: 712px; }
+
   /* ===========================================
-     SLIDE 5 — Workflow ask (paper)
+     SLIDE 5 — Products (paper) : heading + 3 beta cards
      =========================================== */
-  html:not(.portrait) #s5 .h { top: 215px; }
-  html:not(.portrait) #s5 .lede { left: 0; right: 0; margin-inline: auto; width: 1100px; top: 665px; text-align: center; }
+  html:not(.portrait) #s5 .h { top: 175px; font-size: 176px; }
+  .prods { position: absolute; left: var(--pad); right: var(--pad); bottom: 190px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .prod { display: flex; flex-direction: column; justify-content: space-between; gap: 26px; min-height: 280px; padding: 32px 36px 36px; border-radius: 34px; background: var(--ink); color: var(--paper); }
+  .prod:nth-child(2) { background: var(--accent); color: var(--ink); }
+  .prod:nth-child(3) { background: #FBFBF8; color: var(--ink); border: 1.5px solid #E2E0D8; }
+  .prod__top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .prod__top b { font-size: 64px; line-height: 1; letter-spacing: -.045em; font-weight: 650; }
+  .prod__top span { font-family: var(--mono); font-size: 17px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; border: 1.5px solid currentColor; opacity: .75; }
+  .prod p { font-size: 30px; line-height: 1.22; letter-spacing: -.02em; font-weight: 500; opacity: .88; max-width: 15em; text-wrap: balance; }
+  .note--link a { color: var(--ink); text-decoration: none; font-weight: 700; border-bottom: 2px solid var(--accent); padding-bottom: 4px; }
+  html:not(.portrait) #s5 .note--link { position: absolute; left: var(--pad); bottom: 120px; }
   .cta { position: absolute; left: 0; right: 0; bottom: 120px; display: flex; justify-content: center; gap: 18px; }
 
   /* ===========================================
@@ -322,6 +337,28 @@
   .wf__buttons { display: flex; gap: 10px; flex-wrap: wrap; }
   .wf__noscript { color: var(--muted); }
 
+  /* two doors: tab switch above the form card */
+  .doors { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 14px; }
+  .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tab {
+    height: 46px; padding: 0 22px; border-radius: 999px; cursor: pointer; font-size: 16px; font-weight: 600; letter-spacing: -.01em;
+    background: transparent; color: var(--ink); border: 1.5px solid rgba(13,13,13,.28); transition: background .18s ease, color .18s ease;
+  }
+  @media (max-width: 520px) { .tab { flex: 1 1 auto; padding: 0 12px; font-size: 15px; } }
+  .tab:hover { border-color: var(--ink); }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .checks { display: flex; flex-direction: column; gap: 10px; }
+  .field .check {
+    flex-direction: row; align-items: center; gap: 14px; padding: 13px 18px; border-radius: 16px; cursor: pointer;
+    background: #fff; border: 1.5px solid #E2E0D8; font-size: 16px; font-weight: 450; display: flex;
+  }
+  .field .check b { font-weight: 650; }
+  .field .check input { width: 20px; height: 20px; padding: 0; flex: none; accent-color: var(--ink); }
+  .field .check:has(input:checked) { border-color: var(--ink); }
+  .field .check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field.has-err .checks { outline: 1.5px solid #C93A12; outline-offset: 4px; border-radius: 16px; }
+
   /* ===========================================
      PORTRAIT LAYOUT (phones, any window taller than wide)
      The stage is 720 design px wide and as tall as the screen needs, scaled to the full width.
@@ -333,12 +370,12 @@
     display: flex; flex-direction: column; justify-content: center; gap: 36px;
     padding: 150px max(40px, calc((100% - 820px) / 2)) 120px; /* content stays in a column on wider portrait screens */
   }
-  .portrait #s1 .frame, .portrait #s5 .frame { align-items: center; text-align: center; }
+  .portrait #s1 .frame { align-items: center; text-align: center; }
   .portrait .chrome-logo { left: max(40px, calc((100% - 820px) / 2)); top: 44px; height: 46px; }
 
   /* put everything back in normal flow */
   .portrait .h, .portrait .lede, .portrait .rail, .portrait .curve-wrap,
-  .portrait .sub, .portrait .steps, .portrait .cta {
+  .portrait .sub, .portrait .steps, .portrait .cta, .portrait .prods, .portrait .note {
     position: static; left: auto; right: auto; top: auto; bottom: auto; width: auto; margin: 0;
   }
   .portrait .h { font-size: 104px; line-height: .98; }
@@ -347,7 +384,14 @@
   .portrait #s3 .h { font-size: 100px; }
   .portrait #s4 .h { font-size: 120px; }
   .portrait .lede { font-size: 30px; max-width: 22em; }
-  .portrait #s1 .lede, .portrait #s5 .lede { text-align: center; }
+  .portrait #s1 .lede { text-align: center; }
+  .portrait #s5 .h { font-size: 100px; }
+  .portrait .prods { grid-template-columns: 1fr; gap: 12px; }
+  .portrait .prod { min-height: 0; gap: 14px; padding: 22px 26px 26px; border-radius: 28px; }
+  .portrait .prod__top b { font-size: 46px; }
+  .portrait .prod__top span { font-size: 14px; padding: 4px 12px; }
+  .portrait .prod p { font-size: 25px; max-width: none; }
+  .portrait .note { font-size: 19px; }
   .portrait .btn { height: 68px; font-size: 24px; padding: 0 32px; }
   .portrait .cta { margin-top: 8px; justify-content: center; }
 
@@ -411,7 +455,7 @@
 <div class="frame">
       <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
       <h1 class="h center">Every <span class="chip"><svg viewBox="0 0 84 84"><use href="#mark"/></svg></span> company<br> is becoming an<br> <span class="pill">AI</span> company.</h1>
-      <p class="lede rise" style="--d:1200">Not because AI is fashionable. Because the work itself is changing.</p>
+      <p class="lede rise" style="--d:1200">Not because AI is fashionable. Because the work itself is changing.<br>Altairex is an AI product studio.</p>
     </div>
     </section>
 
@@ -458,6 +502,7 @@
       <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
       <h2 class="h">We hold<br> your <span class="chip"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"><rect x="3" y="14" width="26" height="20" rx="10"/><rect x="19" y="14" width="26" height="20" rx="10"/></svg></span> hands.</h2>
       <p class="sub rise" style="--d:1100">Navigate this changing landscape.</p>
+      <p class="note rise" style="--d:1200">The same method we use on our own products.</p>
       <ol class="steps" style="list-style:none">
         <li class="step rise" style="--d:1300"><small>01</small><b>Map the work</b></li>
         <li class="step rise" style="--d:1400"><small>02</small><b>Choose the wedge</b></li>
@@ -468,17 +513,21 @@
     </div>
     </section>
 
-    <!-- ========== 5 — WORKFLOW ASK ========== -->
-    <section class="slide s-paper" id="s5" data-n="5" aria-label="Your workflow">
+    <!-- ========== 5 — PRODUCTS ========== -->
+    <section class="slide s-paper" id="s5" data-n="5" aria-label="Products">
 <div class="frame">
       <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
-      <h2 class="h center">What should<br> we <span class="chip chip--accent"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="21" cy="21" r="13"/><path d="M31 31l12 12"/></svg></span> look at <span class="pill">first?</span></h2>
-      <p class="lede rise" style="--d:1100">Describe one workflow you wish worked differently. We will come back with a point of view, not a sales deck.</p>
-      <div class="cta rise" style="--d:1300"><a class="btn" href="#6" data-go="6">Tell us your workflow <span aria-hidden="true">→</span></a></div>
+      <h2 class="h">We build<br> what we'd <span class="chip chip--accent"><svg viewBox="0 0 48 48" fill="currentColor"><path d="M24 3c1.6 11.2 6.8 16.4 18 18-11.2 1.6-16.4 6.8-18 18-1.6-11.2-6.8-16.4-18-18C17.2 19.4 22.4 14.2 24 3z"/></svg></span> <span class="pill">use.</span></h2>
+      <div class="prods">
+        <article class="prod rise" style="--d:1000"><div class="prod__top"><b>Workspace</b><span>Beta</span></div><p>A business copilot that learns and grows with your company.</p></article>
+        <article class="prod rise" style="--d:1150"><div class="prod__top"><b>Imogen</b><span>Beta</span></div><p>A generative multi-modal studio for creators, built for editing on the go.</p></article>
+        <article class="prod rise" style="--d:1300"><div class="prod__top"><b>UCGF</b><span>Beta</span></div><p>Virtual representation research, with industrial use cases.</p></article>
+      </div>
+      <div class="note note--link rise" style="--d:1500"><a href="#6" data-go="6" data-door="access">Get early access <span aria-hidden="true">→</span></a></div>
     </div>
     </section>
 
-    <!-- (slide 6 is the workflow form, a full-screen responsive layer below the stage) -->
+    <!-- (slide 6 is the two-door form, a full-screen responsive layer below the stage) -->
 
     <!-- ========== 7 — LOGO REVEAL + TAGLINE ========== -->
     <section class="slide s-ink" id="s7" data-n="7" aria-label="Altairex">
@@ -500,7 +549,7 @@
           </g>
         </svg>
         <h2 class="tagline rise" style="--d:2500">Delivering the <em>new age</em>.</h2>
-        <p class="manifesto rise" style="--d:2800">A product studio for the AI transition. We find the workflows worth changing, then build the systems that change them.</p>
+        <p class="manifesto rise" style="--d:2800">An AI product studio. We experiment, then productize what real demand and AI workflows can support.</p>
         <div class="cta rise" style="--d:3100"><a class="btn" href="mailto:info@altairex.com">info@altairex.com</a></div>
       </div>
     </div>
@@ -515,11 +564,17 @@
       <svg class="free__logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
       <div class="free__in">
         <div class="free__head">
-          <h2 class="fh">Tell us your <span class="pill">workflow.</span></h2>
-          <p class="flede rise" style="--d:900">One workflow is enough. We will read it and come back with a point of view.</p>
+          <h2 class="fh">Two ways <span class="pill">in.</span></h2>
+          <p class="flede rise" style="--d:900">Bring us one workflow you wish worked differently, or get early access to what we have built.</p>
         </div>
 
-        <div class="wf rise" style="--d:1100" data-wf>
+        <div class="doors rise" style="--d:1100">
+        <div class="tabs" role="tablist" aria-label="Choose a door">
+          <button class="tab" type="button" role="tab" id="tab-workflow" aria-selected="true" aria-controls="door-workflow" data-tab="workflow">Bring us a workflow</button>
+          <button class="tab" type="button" role="tab" id="tab-access" aria-selected="false" aria-controls="door-access" data-tab="access">Get early access</button>
+        </div>
+
+        <div class="wf" id="door-workflow" role="tabpanel" aria-labelledby="tab-workflow" data-wf="workflow">
           <form class="wf__form" data-form novalidate>
             <div class="field">
               <label for="wf-name">Name</label>
@@ -592,6 +647,62 @@
           </div>
 
           <noscript><p class="wf__noscript">JavaScript is off. Email <a href="mailto:info@altairex.com">info@altairex.com</a> with your workflow and we will take it from there.</p></noscript>
+        </div>
+
+        <div class="wf" id="door-access" role="tabpanel" aria-labelledby="tab-access" data-wf="access" hidden>
+          <form class="wf__form" data-form novalidate>
+            <div class="field">
+              <label for="ac-name">Name</label>
+              <input id="ac-name" name="name" autocomplete="name" required aria-describedby="err-ac-name">
+              <span class="err" id="err-ac-name"></span>
+            </div>
+            <div class="field">
+              <label for="ac-email">Email</label>
+              <input id="ac-email" name="email" type="email" autocomplete="email" required aria-describedby="err-ac-email">
+              <span class="err" id="err-ac-email"></span>
+            </div>
+            <div class="field field--full">
+              <label id="ac-products-l">Which products? <small>(tick any)</small></label>
+              <div class="checks" role="group" aria-labelledby="ac-products-l" aria-describedby="err-ac-products">
+                <label class="check"><input type="checkbox" name="products" value="Workspace"><span><b>Workspace</b> business copilot</span></label>
+                <label class="check"><input type="checkbox" name="products" value="Imogen"><span><b>Imogen</b> multi-modal studio for creators</span></label>
+                <label class="check"><input type="checkbox" name="products" value="UCGF"><span><b>UCGF</b> virtual representation research</span></label>
+              </div>
+              <span class="err" id="err-ac-products"></span>
+            </div>
+            <div class="field field--full">
+              <label for="ac-note">Anything we should know? <small>(optional)</small></label>
+              <textarea id="ac-note" name="note" rows="3" placeholder="What you would use it for."></textarea>
+              <span class="err"></span>
+            </div>
+            <p class="hp" aria-hidden="true">
+              <label for="ac-company-url">Company URL</label>
+              <input id="ac-company-url" name="companyUrl" type="text" tabindex="-1" autocomplete="off">
+            </p>
+            <div class="wf__actions field--full">
+              <button class="btn" type="submit">Request early access <span aria-hidden="true">→</span></button>
+              <p class="wf__status" data-status role="status" aria-live="polite"></p>
+            </div>
+          </form>
+
+          <div class="wf__panel" data-fallback hidden>
+            <p class="wf__kicker">Not connected yet</p>
+            <h3>Your request was not sent.</h3>
+            <p>Submissions are not connected yet. Copy or download this and email it to <a href="mailto:info@altairex.com">info@altairex.com</a>.</p>
+            <pre data-json></pre>
+            <div class="wf__buttons">
+              <button class="btn btn--sm" type="button" data-copy>Copy JSON</button>
+              <button class="btn btn--sm btn--ghost" type="button" data-download>Download .json</button>
+              <button class="btn btn--sm btn--ghost" type="button" data-edit>Edit answers</button>
+            </div>
+          </div>
+
+          <div class="wf__panel" data-success hidden>
+            <p class="wf__kicker">Received</p>
+            <h3>You're on the list.</h3>
+            <p>We will email you when early access opens for the products you picked.</p>
+          </div>
+        </div>
         </div>
       </div>
     </div>
@@ -710,126 +821,145 @@
 
   /* Links that jump to a slide, e.g. the button on slide 5 */
   document.querySelectorAll("[data-go]").forEach((a) =>
-    a.addEventListener("click", (e) => { e.preventDefault(); go(Number(a.dataset.go) - 1); }));
+    a.addEventListener("click", (e) => { e.preventDefault(); if (a.dataset.door) openDoor(a.dataset.door); go(Number(a.dataset.go) - 1); }));
   const fromHash = () => go((parseInt(location.hash.slice(1), 10) || 1) - 1);
   addEventListener("hashchange", fromHash);
 
-  /* === WORKFLOW FORM (slide 6) === */
-  const FIELDS = ["name", "email", "company", "role", "workflow", "currentTools", "hoursPerWeek", "urgency"];
-  const REQUIRED = {
-    name: "Add your name.",
-    email: "Add a valid work email.",
-    company: "Add your company.",
-    workflow: "Describe the workflow."
-  };
+  /* === TWO-DOOR FORMS (slide 6): "workflow" and "access" share one endpoint, told apart by payload.type === */
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const KINDS = {
+    workflow: {
+      type: "workflow-submission", file: "workflow.json",
+      fields: ["name", "email", "company", "role", "workflow", "currentTools", "hoursPerWeek", "urgency"],
+      required: { name: "Add your name.", email: "Add a valid work email.", company: "Add your company.", workflow: "Describe the workflow." }
+    },
+    access: {
+      type: "early-access", file: "early-access.json",
+      fields: ["name", "email", "note"],
+      required: { name: "Add your name.", email: "Add a valid email.", products: "Pick at least one product." }
+    }
+  };
+  const empty = (x) => (Array.isArray(x) ? !x.length : !String(x || "").trim());
 
   /* pure: returns { field: message } for every problem, {} when valid */
-  function validate(v) {
-    const errs = {};
-    for (const k in REQUIRED) if (!String(v[k] || "").trim()) errs[k] = REQUIRED[k];
-    if (!errs.email && !EMAIL_RE.test(String(v.email).trim())) errs.email = REQUIRED.email;
+  function validate(v, kind = "workflow") {
+    const req = KINDS[kind].required, errs = {};
+    for (const k in req) if (empty(v[k])) errs[k] = req[k];
+    if (!errs.email && !EMAIL_RE.test(String(v.email).trim())) errs.email = req.email;
     return errs;
   }
 
-  /* pure: the exact JSON shape used by bento.html */
-  function buildPayload(v, now = new Date()) {
-    const p = { type: "workflow-submission", submittedAt: now.toISOString() };
-    FIELDS.forEach((k) => { p[k] = String(v[k] || "").trim(); });
+  /* pure: the exact JSON sent to the endpoint. "workflow" keeps the original shape. */
+  function buildPayload(v, kind = "workflow", now = new Date()) {
+    const p = { type: KINDS[kind].type, submittedAt: now.toISOString() };
+    KINDS[kind].fields.forEach((k) => { p[k] = String(v[k] || "").trim(); });
+    if (kind === "access") p.products = v.products || [];
     return p;
   }
   window.altairexForm = { validate, buildPayload }; /* test hook */
 
-  const form = document.querySelector("[data-form]");
-  const wf = document.querySelector("[data-wf]");
-  const statusEl = document.querySelector("[data-status]");
-  const fallback = document.querySelector("[data-fallback]");
-  const success = document.querySelector("[data-success]");
-  const jsonEl = document.querySelector("[data-json]");
-  const copyBtn = document.querySelector("[data-copy]");
+  document.querySelectorAll("[data-wf]").forEach((wf) => {
+    const kind = wf.dataset.wf;
+    const form = wf.querySelector("[data-form]");
+    const statusEl = wf.querySelector("[data-status]");
+    const fallback = wf.querySelector("[data-fallback]");
+    const success = wf.querySelector("[data-success]");
+    const jsonEl = wf.querySelector("[data-json]");
+    const copyBtn = wf.querySelector("[data-copy]");
 
-  /* swap the form for a panel without letting the card collapse */
-  const showPanel = (panel) => {
-    wf.style.minHeight = wf.offsetHeight + "px";
-    form.hidden = true;
-    panel.hidden = false;
-  };
+    /* swap the form for a panel without letting the card collapse */
+    const showPanel = (panel) => {
+      wf.style.minHeight = wf.offsetHeight + "px";
+      form.hidden = true;
+      panel.hidden = false;
+    };
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const v = Object.fromEntries(new FormData(form));
-    form.querySelectorAll(".field").forEach((f) => {
-      f.classList.remove("has-err");
-      const err = f.querySelector(".err");
-      if (err) err.textContent = "";
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const v = Object.fromEntries(fd);
+      v.products = fd.getAll("products");
+      form.querySelectorAll(".field").forEach((f) => {
+        f.classList.remove("has-err");
+        const err = f.querySelector(".err");
+        if (err) err.textContent = "";
+      });
+
+      if (v.companyUrl) { showPanel(success); return; } /* honeypot: pretend success, send nothing */
+
+      const errs = validate(v, kind);
+      const keys = Object.keys(errs);
+      if (keys.length) {
+        keys.forEach((k) => {
+          const f = form.querySelector(`[name="${k}"]`).closest(".field");
+          f.classList.add("has-err");
+          f.querySelector(".err").textContent = errs[k];
+        });
+        statusEl.textContent = `Please fix ${keys.length} field${keys.length > 1 ? "s" : ""}.`;
+        form.querySelector(`[name="${keys[0]}"]`).focus();
+        return;
+      }
+      statusEl.textContent = "";
+
+      const payload = buildPayload(v, kind);
+      const url = window.ALTAIREX_SUBMIT_URL;
+      if (!url) {
+        jsonEl.textContent = JSON.stringify(payload, null, 2);
+        showPanel(fallback);
+        return;
+      }
+
+      const btn = form.querySelector("[type=submit]");
+      btn.disabled = true;
+      statusEl.textContent = "Sending…";
+      try {
+        const res = await fetch(url, {
+          method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        statusEl.textContent = "";
+        showPanel(success);
+      } catch {
+        statusEl.textContent = "Could not send. Check your connection and try again, or email info@altairex.com.";
+      } finally {
+        btn.disabled = false;
+      }
     });
 
-    if (v.companyUrl) { showPanel(success); return; } /* honeypot: pretend success, send nothing */
-
-    const errs = validate(v);
-    const keys = Object.keys(errs);
-    if (keys.length) {
-      keys.forEach((k) => {
-        const f = form.elements[k].closest(".field");
-        f.classList.add("has-err");
-        f.querySelector(".err").textContent = errs[k];
-      });
-      statusEl.textContent = `Please fix ${keys.length} field${keys.length > 1 ? "s" : ""}.`;
-      form.elements[keys[0]].focus();
-      return;
-    }
-    statusEl.textContent = "";
-
-    const payload = buildPayload(v);
-    const url = window.ALTAIREX_SUBMIT_URL;
-    if (!url) {
-      jsonEl.textContent = JSON.stringify(payload, null, 2);
-      showPanel(fallback);
-      return;
-    }
-
-    const btn = form.querySelector("[type=submit]");
-    btn.disabled = true;
-    statusEl.textContent = "Sending…";
-    try {
-      const res = await fetch(url, {
-        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      statusEl.textContent = "";
-      showPanel(success);
-    } catch {
-      statusEl.textContent = "Could not send. Check your connection and try again, or email info@altairex.com.";
-    } finally {
-      btn.disabled = false;
-    }
+    /* fallback panel buttons */
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(jsonEl.textContent);
+        copyBtn.textContent = "Copied";
+      } catch {
+        const r = document.createRange();
+        r.selectNodeContents(jsonEl);
+        getSelection().removeAllRanges();
+        getSelection().addRange(r);
+        copyBtn.textContent = "Press Ctrl+C";
+      }
+      setTimeout(() => { copyBtn.textContent = "Copy JSON"; }, 2000);
+    });
+    wf.querySelector("[data-download]").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([jsonEl.textContent], { type: "application/json" }));
+      a.download = KINDS[kind].file;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    wf.querySelector("[data-edit]").addEventListener("click", () => {
+      fallback.hidden = true;
+      form.hidden = false;
+    });
   });
 
-  /* fallback panel buttons */
-  copyBtn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(jsonEl.textContent);
-      copyBtn.textContent = "Copied";
-    } catch {
-      const r = document.createRange();
-      r.selectNodeContents(jsonEl);
-      getSelection().removeAllRanges();
-      getSelection().addRange(r);
-      copyBtn.textContent = "Press Ctrl+C";
-    }
-    setTimeout(() => { copyBtn.textContent = "Copy JSON"; }, 2000);
-  });
-  document.querySelector("[data-download]").addEventListener("click", () => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([jsonEl.textContent], { type: "application/json" }));
-    a.download = "workflow.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
-  document.querySelector("[data-edit]").addEventListener("click", () => {
-    fallback.hidden = true;
-    form.hidden = false;
-  });
+  /* Door switch: two tabs, one visible form */
+  const tabs = [...document.querySelectorAll("[data-tab]")];
+  const openDoor = (k) => {
+    tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === k)));
+    document.querySelectorAll("[data-wf]").forEach((w) => { w.hidden = w.dataset.wf !== k; });
+  };
+  tabs.forEach((t) => t.addEventListener("click", () => openDoor(t.dataset.tab)));
 
   fromHash();
 })();
