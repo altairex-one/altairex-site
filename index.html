@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altairex — Delivering the new age</title>
+<!-- Form endpoint for slide 6 (Formspree). Empty = not connected: the form shows a copy/download fallback instead. -->
+<script>window.ALTAIREX_SUBMIT_URL = "https://formspree.io/f/mbgdnend";</script>
+<script>document.documentElement.classList.toggle("portrait", innerWidth < innerHeight);</script>
+<meta name="description" content="Altairex is a product studio for the AI transition. We find the workflows worth changing, then build the systems that change them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&display=swap" rel="stylesheet">
+<style>
+  /* ===========================================
+     THEME — same palette and font as bento.html
+     =========================================== */
+  :root {
+    --paper: #F5F4F0;
+    --ink: #0D0D0D;
+    --muted: #6E6C66;
+    --accent: #FF4B1F;
+    --butter: #FFD21F;           /* second accent, from the Ramos / Happines references */
+    --font: "Hanken Grotesk", -apple-system, "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.16, .8, .24, 1);
+    --stage-bg: #0D0D0D;         /* letterbox colour */
+    --pad: 120px;                /* slide side padding (1920 canvas) */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ===========================================
+     FIXED 16:9 STAGE: MANDATORY BASE STYLES
+     (viewport-base.css, unchanged)
+     =========================================== */
+  html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+  .deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+  /* The stage is no longer a fixed 1920x1080 box. JS sets --W and --H so the scaled stage covers the
+     whole window exactly (no bars): landscape is at least 1920x1080, portrait is 720 wide. */
+  .deck-stage {
+    position: absolute; left: 0; top: 0; width: var(--W, 1920px); height: var(--H, 1080px);
+    overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff);
+  }
+  .slide {
+    position: absolute; inset: 0; width: var(--W, 1920px); height: var(--H, 1080px); overflow: hidden;
+    display: block; visibility: hidden; opacity: 0; pointer-events: none;
+    background: var(--slide-bg, #fff);
+  }
+  .slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+  img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+  .deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+  @media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important;
+      pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .2s !important; }
+  }
+
+  /* ===========================================
+     SLIDE BASE — per-slide colours via --bg / --fg / --dim
+     =========================================== */
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+  .slide {
+    background: var(--bg); color: var(--fg);
+    /* the outgoing slide fades while the incoming one fades in */
+    transition: opacity .55s ease, visibility 0s linear .55s;
+  }
+  .slide.active { transition: opacity .55s ease, visibility 0s; }
+
+  .s-paper  { --bg: var(--paper);  --fg: var(--ink);   --dim: #B9B7AF; --sub: var(--muted); }
+  .s-orange { --bg: var(--accent); --fg: var(--ink);   --dim: rgba(13,13,13,.38); --sub: rgba(13,13,13,.72); }
+  .s-butter { --bg: var(--butter); --fg: var(--ink);   --dim: rgba(13,13,13,.34); --sub: rgba(13,13,13,.68); }
+  .s-ink    { --bg: var(--ink);    --fg: var(--paper); --dim: rgba(245,244,240,.4); --sub: rgba(245,244,240,.62); }
+
+  /* Soft atmosphere so flat colours do not feel empty */
+  .slide::before {
+    content: ""; position: absolute; width: 1100px; height: 1100px; border-radius: 50%;
+    right: -380px; top: -520px; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,.16), transparent 65%);
+  }
+  .s-paper::before { background: radial-gradient(circle, rgba(255,75,31,.10), transparent 65%); }
+  .s-ink::before   { background: radial-gradient(circle, rgba(255,75,31,.20), transparent 65%); }
+
+  /* === FRAME: the approved 1920x1080 design box, centred inside the (screen-sized) slide.
+     The slide background fills the whole window; the content stays exactly as designed. === */
+  .frame { position: absolute; left: var(--ox, 0px); top: var(--oy, 0px); width: 1920px; height: 1080px; }
+
+  /* === CHROME: logo top-left === */
+  .chrome-logo { position: absolute; left: var(--pad); top: 64px; height: 56px; width: auto; color: var(--fg); }
+
+  /* === BIG HEADINGS === */
+  .h {
+    position: absolute; left: var(--pad); right: var(--pad);
+    font-weight: 650; letter-spacing: -.052em; line-height: .98;
+    font-size: 188px; text-wrap: balance;
+  }
+  .center { text-align: center; }
+  .dim { color: var(--dim); }
+
+  /* word-by-word rise; JS tags each word with .w and --i */
+  .w { display: inline-block; opacity: 0; transform: translateY(.32em); filter: blur(10px); }
+  .slide.visible .w, .free.visible .w {
+    opacity: 1; transform: none; filter: none;
+    transition: opacity .8s var(--ease), transform .9s var(--ease), filter .8s var(--ease);
+    transition-delay: calc(180ms + var(--i) * 85ms);
+  }
+
+  /* generic fade-up for everything that is not a heading word */
+  .rise { opacity: 0; transform: translateY(28px); }
+  .slide.visible .rise, .free.visible .rise {
+    opacity: 1; transform: none;
+    transition: opacity .8s var(--ease), transform .9s var(--ease);
+    transition-delay: calc(var(--d, 0) * 1ms);
+  }
+
+  /* Inline icon chip (Inspire.png): a rounded app-icon sitting in the heading */
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: .8em; height: .8em; border-radius: .2em; vertical-align: -.04em; margin: 0 .04em;
+    background: var(--ink); color: var(--paper);
+  }
+  .chip svg { width: 56%; height: 56%; }
+  .chip--accent { background: var(--accent); color: var(--ink); }
+  .chip--paper  { background: var(--paper); color: var(--ink); }
+  .chip--butter { background: var(--butter); color: var(--ink); }
+  .s-orange .chip--accent { background: var(--ink); color: var(--accent); }
+
+  /* Highlight pill (Happines "creative"): tilted word on a coloured capsule */
+  .pill {
+    display: inline-block; padding: .02em .26em .1em; border-radius: .5em; line-height: .9;
+    rotate: -3deg; background: var(--accent); color: var(--ink);
+  }
+  .pill--ink { background: var(--ink); color: var(--paper); }
+  .pill--butter { background: var(--butter); color: var(--ink); }
+
+  .lede { position: absolute; font-size: 38px; line-height: 1.38; letter-spacing: -.015em; color: var(--sub); font-weight: 450; max-width: 30em; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 38px;
+    border-radius: 999px; font-size: 28px; font-weight: 600; letter-spacing: -.01em; text-decoration: none;
+    background: var(--ink); color: var(--paper); border: 2px solid var(--ink);
+  }
+  .btn--ghost { background: transparent; color: var(--fg); border-color: currentColor; opacity: .85; }
+  .btn:hover { transform: translateY(-2px); }
+
+  /* ===========================================
+     SLIDE 1 — Why
+     =========================================== */
+  html:not(.portrait) #s1 .h { top: 215px; }
+  html:not(.portrait) #s1 .lede { left: 0; right: 0; margin-inline: auto; width: 1400px; bottom: 120px; text-align: center; }
+
+  /* ===========================================
+     SLIDE 2 — How (orange) : heading + day rail
+     =========================================== */
+  html:not(.portrait) #s2 .h { top: 175px; font-size: 158px; }
+  .rail { position: absolute; left: var(--pad); right: var(--pad); bottom: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .day {
+    display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
+    height: 200px; padding: 26px 30px; border-radius: 32px;
+    background: var(--paper); color: var(--ink);
+  }
+  .day__top { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 20px; letter-spacing: .1em; }
+  .day__top i { font-style: normal; color: var(--accent); }
+  .day__top span { text-transform: uppercase; font-size: 17px; color: var(--muted); border: 1.5px solid #DAD8CF; border-radius: 999px; padding: 5px 12px; }
+  .day p { font-size: 32px; line-height: 1.12; letter-spacing: -.03em; font-weight: 600; }
+  .day p::before { content: "\201C"; color: var(--accent); }
+  .day p::after  { content: "\201D"; color: var(--accent); }
+
+  /* ===========================================
+     SLIDE 3 — When : heading + capability curve
+     =========================================== */
+  html:not(.portrait) #s3 .h { top: 180px; left: var(--pad); right: auto; }
+  .curve-wrap { position: absolute; left: 940px; right: var(--pad); top: 400px; bottom: 100px; }
+  .curve { width: 100%; height: 100%; max-height: none; overflow: visible; }
+  .curve .grid line { stroke: #DDDBD2; stroke-width: 2; stroke-dasharray: 4 12; }
+  .curve .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .curve .area { fill: var(--accent); opacity: 0; }
+  .curve .gap  { fill: var(--accent); opacity: 0; }
+  .curve .mk   { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 4 10; opacity: 0; }
+  .curve .mk--a { stroke: var(--accent); opacity: 0; }
+  .curve .dot  { fill: var(--accent); stroke: var(--paper); stroke-width: 6; opacity: 0; }
+  .curve text  { font-family: var(--mono); font-size: 22px; letter-spacing: .14em; text-transform: uppercase; fill: var(--muted); opacity: 0; }
+  .curve text.acc { fill: #C93A12; }
+  .slide.visible .curve .line { stroke-dashoffset: 0; transition: stroke-dashoffset 2s var(--ease) .9s; }
+  .slide.visible .curve .area { opacity: .08; transition: opacity 1s ease 1.8s; }
+  .slide.visible .curve .gap  { opacity: .08; transition: opacity 1s ease 1.8s; }
+  .slide.visible .curve .mk   { opacity: .35; transition: opacity .6s ease 1.4s; }
+  .slide.visible .curve .mk--a { opacity: .9; transition: opacity .6s ease 1.8s; }
+  .slide.visible .curve .dot  { opacity: 1; transition: opacity .5s ease 2.1s; }
+  .slide.visible .curve text  { opacity: 1; transition: opacity .6s ease 2.1s; }
+  html:not(.portrait) #s3 .lede { left: var(--pad); top: 790px; max-width: 800px; }
+
+  /* ===========================================
+     SLIDE 4 — Guidance (butter) : heading + 5 steps
+     =========================================== */
+  html:not(.portrait) #s4 .h { top: 175px; font-size: 200px; }
+  html:not(.portrait) #s4 .sub { position: absolute; left: var(--pad); top: 635px; font-size: 80px; line-height: 1; letter-spacing: -.045em; font-weight: 500; color: rgba(13,13,13,.55); max-width: 17em; }
+  .steps { position: absolute; left: var(--pad); right: var(--pad); bottom: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+  .step { padding: 24px 28px 28px; border-radius: 30px; background: var(--ink); color: var(--paper); height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+  .step:nth-child(3) { background: var(--accent); color: var(--ink); }
+  .step small { font-family: var(--mono); font-size: 20px; letter-spacing: .12em; opacity: .6; }
+  .step b { font-size: 36px; line-height: 1.05; letter-spacing: -.035em; font-weight: 600; }
+
+  /* ===========================================
+     SLIDE 5 — Workflow ask (paper)
+     =========================================== */
+  html:not(.portrait) #s5 .h { top: 215px; }
+  html:not(.portrait) #s5 .lede { left: 0; right: 0; margin-inline: auto; width: 1100px; top: 665px; text-align: center; }
+  .cta { position: absolute; left: 0; right: 0; bottom: 120px; display: flex; justify-content: center; gap: 18px; }
+
+  /* ===========================================
+     SLIDE 6 — Logo reveal + tagline (ink)
+     =========================================== */
+  .reveal { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 20px; }
+  .wordmark { width: 1040px; height: auto; max-height: none; overflow: visible; }
+  .wordmark text { font-family: var(--font); font-weight: 700; font-size: 42.33px; letter-spacing: -.85px; }
+  .wordmark .name { fill: var(--paper); }
+  .wordmark .subname { fill: var(--paper); fill-opacity: .55; }
+  .wordmark .mark { fill: var(--paper); }
+  .wordmark .tile, .wordmark .ghost, .wordmark .wtext { opacity: 0; }
+  .wordmark .tile { transform-box: fill-box; transform-origin: center; transform: scale(.5); }
+  .wordmark .wtext { transform: translateX(-180px); }
+  .slide.visible .wordmark .tile { animation: tile-in .42s var(--ease) forwards; animation-delay: calc(500ms + var(--t, 0) * 70ms); }
+  .slide.visible .wordmark .tile.core { animation-name: core-in; animation-delay: 150ms; }
+  .slide.visible .wordmark .ghost { animation: ghost-in .5s ease-out forwards; animation-delay: 800ms; }
+  .slide.visible .wordmark .wtext { animation: text-slide .9s var(--ease) forwards; animation-delay: 1500ms; }
+  @keyframes core-in   { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+  @keyframes tile-in   { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
+  @keyframes ghost-in  { from { opacity: 0; } to { opacity: .18; } }
+  @keyframes text-slide { from { opacity: 0; transform: translateX(-180px); } 40% { opacity: 1; } to { opacity: 1; transform: translateX(0); } }
+
+  .tagline { margin-top: 64px; font-size: 128px; line-height: 1; letter-spacing: -.05em; font-weight: 550; }
+  .tagline em { font-style: normal; color: var(--accent); }
+  .manifesto { margin-top: 30px; max-width: 1100px; font-size: 34px; line-height: 1.42; color: var(--sub); }
+  .reveal .cta { position: static; margin-top: 44px; }
+  .reveal .btn { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .reveal .btn--ghost { background: transparent; color: var(--paper); border-color: rgba(245,244,240,.35); }
+
+  /* ===========================================
+     SLIDE 6 — Workflow form (paper). A full-window layer, NOT scaled with the stage,
+     so inputs stay a readable size on any screen. Same colours, type and motion as the deck.
+     =========================================== */
+  .free {
+    --fpad: clamp(20px, 6.25vw, 120px);
+    position: fixed; inset: 0; z-index: 5; overflow: hidden;
+    background: var(--bg); color: var(--fg);
+    visibility: hidden; opacity: 0; pointer-events: none;
+    transition: opacity .55s ease, visibility 0s linear .55s;
+  }
+  .free.active { visibility: visible; opacity: 1; pointer-events: auto; transition: opacity .55s ease, visibility 0s; }
+  .free::before {
+    content: ""; position: absolute; width: 1100px; height: 1100px; border-radius: 50%;
+    right: -380px; top: -520px; pointer-events: none;
+  }
+  .free input, .free select, .free textarea { font: inherit; color: inherit; }
+  .free button { font: inherit; } /* colour stays with .btn, or the label vanishes on the dark button */
+  .free__scroll {
+    position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column;
+    padding: clamp(88px, 15vh, 150px) var(--fpad) 110px;
+  }
+  .free__logo { position: absolute; left: var(--fpad); top: clamp(20px, 5.9vh, 64px); height: clamp(36px, 5.2vh, 56px); width: auto; color: var(--fg); }
+  /* narrow: heading above the form, centred. wide (>=1100px): heading left, form right, so it fits one screen */
+  .free__in { width: min(1680px, 100%); margin: auto; display: grid; grid-template-columns: 1fr; justify-items: center; gap: clamp(18px, 3vh, 34px); }
+  .free__head { display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.5vh, 28px); text-align: center; }
+  .fh {
+    font-weight: 650; letter-spacing: -.052em; line-height: .98; text-wrap: balance;
+    font-size: clamp(44px, min(10vw, 13vh), 120px);
+  }
+  .flede { font-size: clamp(17px, 1.6vw, 30px); line-height: 1.4; letter-spacing: -.015em; color: var(--sub); max-width: 30em; }
+  @media (min-width: 1100px) {
+    .free__in { grid-template-columns: .85fr 1.15fr; column-gap: clamp(40px, 5vw, 100px); justify-items: stretch; align-items: center; }
+    .free__head { align-items: flex-start; text-align: left; }
+    .fh { font-size: clamp(64px, min(6.4vw, 13vh), 130px); }
+  }
+  .free .btn { height: 56px; font-size: 18px; padding: 0 28px; cursor: pointer; }
+  .free .btn--sm { height: 44px; font-size: 15px; padding: 0 20px; }
+  .free .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+  .wf {
+    width: 100%; max-width: 1000px; text-align: left; padding: clamp(18px, 3vw, 40px);
+    background: #FBFBF8; border: 1px solid #E2E0D8; border-radius: clamp(22px, 2vw, 32px);
+  }
+  .wf__form { display: grid; grid-template-columns: 1fr; gap: 18px 20px; }
+  .wf__form[hidden] { display: none; } /* display:grid would otherwise override the hidden attribute */
+  @media (min-width: 700px) { .wf__form { grid-template-columns: 1fr 1fr; } .field--full { grid-column: 1 / -1; } }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .field label small { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 15px 18px; font-size: 17px;
+    background: #fff; border: 1.5px solid #E2E0D8; border-radius: 16px; transition: border-color .18s ease;
+  }
+  .field textarea { resize: vertical; min-height: 96px; }
+  .field input:hover, .field select:hover, .field textarea:hover { border-color: rgba(13,13,13,.3); }
+  .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--ink); }
+  .field.has-err input, .field.has-err textarea { border-color: #C93A12; }
+  .err { color: #C93A12; font-size: 14px; font-weight: 500; }
+  .err:empty { display: none; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .wf__actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .wf__status { color: var(--muted); font-size: 15px; }
+  .wf__panel { display: flex; flex-direction: column; gap: 16px; }
+  .wf__panel[hidden] { display: none; }
+  .wf__kicker { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .wf__panel h3 { font-size: clamp(26px, 2.6vw, 40px); line-height: 1.05; letter-spacing: -.04em; font-weight: 600; }
+  .wf__panel p:not(.wf__kicker) { color: var(--muted); font-size: 17px; max-width: 46em; }
+  .wf__panel a { color: var(--ink); font-weight: 600; }
+  .wf__panel pre {
+    margin: 0; padding: 18px 20px; max-height: 300px; overflow: auto; border-radius: 18px;
+    background: var(--ink); color: var(--paper);
+    font-family: var(--mono); font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .wf__buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  .wf__noscript { color: var(--muted); }
+
+  /* ===========================================
+     PORTRAIT LAYOUT (phones, any window taller than wide)
+     The stage is 720 design px wide and as tall as the screen needs, scaled to the full width.
+     Same look as the deck; the pieces simply stack instead of being placed on a 16:9 canvas.
+     =========================================== */
+  html.portrait { --pad: 40px; }
+  .portrait .frame {
+    left: 0; top: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; gap: 36px;
+    padding: 150px max(40px, calc((100% - 820px) / 2)) 120px; /* content stays in a column on wider portrait screens */
+  }
+  .portrait #s1 .frame, .portrait #s5 .frame { align-items: center; text-align: center; }
+  .portrait .chrome-logo { left: max(40px, calc((100% - 820px) / 2)); top: 44px; height: 46px; }
+
+  /* put everything back in normal flow */
+  .portrait .h, .portrait .lede, .portrait .rail, .portrait .curve-wrap,
+  .portrait .sub, .portrait .steps, .portrait .cta {
+    position: static; left: auto; right: auto; top: auto; bottom: auto; width: auto; margin: 0;
+  }
+  .portrait .h { font-size: 104px; line-height: .98; }
+  .portrait .h br { display: none; }
+  .portrait #s2 .h { font-size: 96px; }
+  .portrait #s3 .h { font-size: 100px; }
+  .portrait #s4 .h { font-size: 120px; }
+  .portrait .lede { font-size: 30px; max-width: 22em; }
+  .portrait #s1 .lede, .portrait #s5 .lede { text-align: center; }
+  .portrait .btn { height: 68px; font-size: 24px; padding: 0 32px; }
+  .portrait .cta { margin-top: 8px; justify-content: center; }
+
+  .portrait .rail { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .portrait .day { height: auto; min-height: 170px; padding: 20px 22px; border-radius: 26px; }
+  .portrait .day__top { font-size: 16px; }
+  .portrait .day__top span { font-size: 13px; padding: 4px 10px; }
+  .portrait .day p { font-size: 26px; }
+
+  .portrait .curve-wrap { height: 360px; }
+  .portrait .curve text { font-size: 26px; }
+
+  .portrait .sub { font-size: 46px; line-height: 1.02; letter-spacing: -.045em; font-weight: 500; color: rgba(13,13,13,.55); max-width: 14em; }
+  .portrait .steps { grid-template-columns: 1fr; gap: 10px; }
+  .portrait .step { height: auto; flex-direction: row; align-items: center; justify-content: flex-start; gap: 20px; padding: 18px 24px; border-radius: 24px; }
+  .portrait .step small { font-size: 16px; }
+  .portrait .step b { font-size: 30px; }
+
+  .portrait .reveal { padding: 0 40px 40px; }
+  .portrait .wordmark { width: 600px; }
+  .portrait .tagline { margin-top: 44px; font-size: 92px; }
+  .portrait .manifesto { margin-top: 24px; max-width: 600px; font-size: 27px; }
+  .portrait .reveal .cta { margin-top: 32px; }
+
+  /* ===========================================
+     DECK CONTROLS (outside the stage): progress dots
+     =========================================== */
+  .deck-controls { display: flex; gap: 10px; padding: 9px 12px; border-radius: 999px; background: rgba(13,13,13,.72); backdrop-filter: blur(10px); }
+  .deck-controls button { width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; background: rgba(245,244,240,.35); cursor: pointer; transition: background .2s, transform .2s; }
+  .deck-controls button.on { background: var(--accent); transform: scale(1.3); }
+  .deck-controls button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Logo sprite: the 3x3 grid mark + lockup from bento.html -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="mark" viewBox="0 0 84 84">
+    <g fill="currentColor">
+      <g opacity=".3"><rect x="0" y="0" width="24" height="24" rx="5"/><rect x="60" y="0" width="24" height="24" rx="5"/><rect x="30" y="60" width="24" height="24" rx="5"/></g>
+      <rect x="30" y="0" width="24" height="24" rx="5"/><rect x="0" y="30" width="24" height="24" rx="5"/><rect x="30" y="30" width="24" height="24" rx="5"/>
+      <rect x="60" y="30" width="24" height="24" rx="5"/><rect x="0" y="60" width="24" height="24" rx="5"/><rect x="60" y="60" width="24" height="24" rx="5"/>
+    </g>
+  </symbol>
+  <symbol id="logo-lockup" viewBox="0 0 273.2 84.7">
+    <g fill="currentColor" transform="translate(0 .32)">
+      <g opacity=".18"><rect x="0" y="0" width="24" height="24" rx="5"/><rect x="60" y="0" width="24" height="24" rx="5"/><rect x="30" y="60" width="24" height="24" rx="5"/></g>
+      <rect x="30" y="0" width="24" height="24" rx="5"/><rect x="0" y="30" width="24" height="24" rx="5"/><rect x="30" y="30" width="24" height="24" rx="5"/>
+      <rect x="60" y="30" width="24" height="24" rx="5"/><rect x="0" y="60" width="24" height="24" rx="5"/><rect x="60" y="60" width="24" height="24" rx="5"/>
+    </g>
+    <text x="103.2" y="35.56" fill="currentColor" font-family="Hanken Grotesk, -apple-system, 'Helvetica Neue', system-ui, sans-serif" font-weight="700" font-size="42.33" letter-spacing="-0.85">Altairex</text>
+    <text x="103.2" y="77.89" fill="currentColor" fill-opacity=".55" font-family="Hanken Grotesk, -apple-system, 'Helvetica Neue', system-ui, sans-serif" font-weight="700" font-size="42.33" letter-spacing="-0.85">Research</text>
+  </symbol>
+</svg>
+
+<div class="deck-viewport">
+  <main class="deck-stage" id="deckStage">
+
+    <!-- ========== 1 — WHY ========== -->
+    <section class="slide s-paper active" id="s1" data-n="1" aria-label="Why">
+<div class="frame">
+      <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <h1 class="h center">Every <span class="chip"><svg viewBox="0 0 84 84"><use href="#mark"/></svg></span> company<br> is becoming an<br> <span class="pill">AI</span> company.</h1>
+      <p class="lede rise" style="--d:1200">Not because AI is fashionable. Because the work itself is changing.</p>
+    </div>
+    </section>
+
+    <!-- ========== 2 — HOW ========== -->
+    <section class="slide s-orange" id="s2" data-n="2" aria-label="How">
+<div class="frame">
+      <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <h2 class="h">Everybody is <span class="chip chip--paper"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="38" height="28" rx="6"/><path d="M8 15l16 12 16-12"/></svg></span><br> using AI <span class="chip chip--accent"><svg viewBox="0 0 48 48" fill="currentColor"><path d="M24 3c1.6 11.2 6.8 16.4 18 18-11.2 1.6-16.4 6.8-18 18-1.6-11.2-6.8-16.4-18-18C17.2 19.4 22.4 14.2 24 3z"/></svg></span><br> every <span class="pill pill--ink">day.</span></h2>
+      <div class="rail">
+        <article class="day rise" style="--d:1000"><div class="day__top"><i>08:12</i><span>Inbox</span></div><p>Draft a reply in my voice.</p></article>
+        <article class="day rise" style="--d:1120"><div class="day__top"><i>10:30</i><span>Call notes</span></div><p>Summarize the decisions and owners.</p></article>
+        <article class="day rise" style="--d:1240"><div class="day__top"><i>13:05</i><span>Spreadsheet</span></div><p>Clean the list and flag duplicates.</p></article>
+        <article class="day rise" style="--d:1360"><div class="day__top"><i>16:40</i><span>Tomorrow</span></div><p>Turn these notes into a plan.</p></article>
+      </div>
+    </div>
+    </section>
+
+    <!-- ========== 3 — WHEN ========== -->
+    <section class="slide s-paper" id="s3" data-n="3" aria-label="When">
+<div class="frame">
+      <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <h2 class="h">AI is starting<br> to <span class="dim">learn</span><br> everything.</h2>
+      <p class="lede rise" style="--d:1400">Every workflow leaves a trace.<br>The longer you wait, the wider the gap.</p>
+      <div class="curve-wrap">
+        <svg class="curve" viewBox="0 0 800 560" role="img" aria-label="Capability rising over time. The gap between starting now and starting later widens.">
+          <g class="grid" aria-hidden="true"><line x1="0" y1="80" x2="800" y2="80"/><line x1="0" y1="190" x2="800" y2="190"/><line x1="0" y1="300" x2="800" y2="300"/><line x1="0" y1="410" x2="800" y2="410"/></g>
+          <rect class="gap" x="230" y="40" width="330" height="470" rx="6"/>
+          <path class="area" d="M0 510 C 150 506, 230 480, 330 420 C 440 350, 520 230, 620 140 C 690 80, 750 50, 800 30 L800 510 L0 510 Z"/>
+          <path class="line" pathLength="1" d="M0 510 C 150 506, 230 480, 330 420 C 440 350, 520 230, 620 140 C 690 80, 750 50, 800 30"/>
+          <line class="mk" x1="230" y1="40" x2="230" y2="510"/>
+          <line class="mk mk--a" x1="560" y1="40" x2="560" y2="510"/>
+          <circle class="dot" cx="230" cy="476" r="13"/>
+          <circle class="dot" cx="560" cy="170" r="13"/>
+          <text x="230" y="22" text-anchor="middle">Now</text>
+          <text class="acc" x="560" y="22" text-anchor="middle">When you start</text>
+        </svg>
+      </div>
+    </div>
+    </section>
+
+    <!-- ========== 4 — GUIDANCE ========== -->
+    <section class="slide s-butter" id="s4" data-n="4" aria-label="Guidance">
+<div class="frame">
+      <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <h2 class="h">We hold<br> your <span class="chip"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"><rect x="3" y="14" width="26" height="20" rx="10"/><rect x="19" y="14" width="26" height="20" rx="10"/></svg></span> hands.</h2>
+      <p class="sub rise" style="--d:1100">Navigate this changing landscape.</p>
+      <ol class="steps" style="list-style:none">
+        <li class="step rise" style="--d:1300"><small>01</small><b>Map the work</b></li>
+        <li class="step rise" style="--d:1400"><small>02</small><b>Choose the wedge</b></li>
+        <li class="step rise" style="--d:1500"><small>03</small><b>Build with you</b></li>
+        <li class="step rise" style="--d:1600"><small>04</small><b>Train the team</b></li>
+        <li class="step rise" style="--d:1700"><small>05</small><b>Stay close</b></li>
+      </ol>
+    </div>
+    </section>
+
+    <!-- ========== 5 — WORKFLOW ASK ========== -->
+    <section class="slide s-paper" id="s5" data-n="5" aria-label="Your workflow">
+<div class="frame">
+      <svg class="chrome-logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <h2 class="h center">What should<br> we <span class="chip chip--accent"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="21" cy="21" r="13"/><path d="M31 31l12 12"/></svg></span> look at <span class="pill">first?</span></h2>
+      <p class="lede rise" style="--d:1100">Describe one workflow you wish worked differently. We will come back with a point of view, not a sales deck.</p>
+      <div class="cta rise" style="--d:1300"><a class="btn" href="#6" data-go="6">Tell us your workflow <span aria-hidden="true">→</span></a></div>
+    </div>
+    </section>
+
+    <!-- (slide 6 is the workflow form, a full-screen responsive layer below the stage) -->
+
+    <!-- ========== 7 — LOGO REVEAL + TAGLINE ========== -->
+    <section class="slide s-ink" id="s7" data-n="7" aria-label="Altairex">
+<div class="frame">
+      <div class="reveal">
+        <svg class="wordmark" viewBox="0 0 273.2 84.7" role="img" aria-label="Altairex Research">
+          <defs><clipPath id="logo-clip" clipPathUnits="userSpaceOnUse"><rect x="84" y="-4" width="189.2" height="92.7"/></clipPath></defs>
+          <g clip-path="url(#logo-clip)">
+            <g class="wtext"><text class="name" x="103.2" y="35.56">Altairex</text><text class="subname" x="103.2" y="77.89">Research</text></g>
+          </g>
+          <g class="mark" transform="translate(0 .32)">
+            <g class="ghost"><rect x="0" y="0" width="24" height="24" rx="5"/><rect x="60" y="0" width="24" height="24" rx="5"/><rect x="30" y="60" width="24" height="24" rx="5"/></g>
+            <rect class="tile" style="--t:0" x="30" y="0" width="24" height="24" rx="5"/>
+            <rect class="tile" style="--t:1" x="0" y="30" width="24" height="24" rx="5"/>
+            <rect class="tile core" x="30" y="30" width="24" height="24" rx="5"/>
+            <rect class="tile" style="--t:2" x="60" y="30" width="24" height="24" rx="5"/>
+            <rect class="tile" style="--t:3" x="0" y="60" width="24" height="24" rx="5"/>
+            <rect class="tile" style="--t:4" x="60" y="60" width="24" height="24" rx="5"/>
+          </g>
+        </svg>
+        <h2 class="tagline rise" style="--d:2500">Delivering the <em>new age</em>.</h2>
+        <p class="manifesto rise" style="--d:2800">A product studio for the AI transition. We find the workflows worth changing, then build the systems that change them.</p>
+        <div class="cta rise" style="--d:3100"><a class="btn" href="mailto:info@altairex.com">info@altairex.com</a></div>
+      </div>
+    </div>
+    </section>
+
+  </main>
+
+  <!-- ========== 6 — WORKFLOW FORM ==========
+       Not part of the scaled 16:9 stage: it fills the window at normal size so it is usable on phones. -->
+  <section class="free s-paper" id="s6" data-n="6" aria-label="Your workflow form">
+    <div class="free__scroll">
+      <svg class="free__logo" viewBox="0 0 273.2 84.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+      <div class="free__in">
+        <div class="free__head">
+          <h2 class="fh">Tell us your <span class="pill">workflow.</span></h2>
+          <p class="flede rise" style="--d:900">One workflow is enough. We will read it and come back with a point of view.</p>
+        </div>
+
+        <div class="wf rise" style="--d:1100" data-wf>
+          <form class="wf__form" data-form novalidate>
+            <div class="field">
+              <label for="wf-name">Name</label>
+              <input id="wf-name" name="name" autocomplete="name" required aria-describedby="err-name">
+              <span class="err" id="err-name"></span>
+            </div>
+            <div class="field">
+              <label for="wf-email">Work email</label>
+              <input id="wf-email" name="email" type="email" autocomplete="email" required aria-describedby="err-email">
+              <span class="err" id="err-email"></span>
+            </div>
+            <div class="field">
+              <label for="wf-company">Company</label>
+              <input id="wf-company" name="company" autocomplete="organization" required aria-describedby="err-company">
+              <span class="err" id="err-company"></span>
+            </div>
+            <div class="field">
+              <label for="wf-role">Role <small>(optional)</small></label>
+              <input id="wf-role" name="role" autocomplete="organization-title">
+              <span class="err"></span>
+            </div>
+            <div class="field field--full">
+              <label for="wf-workflow">The workflow you want to change</label>
+              <textarea id="wf-workflow" name="workflow" rows="4" placeholder="What happens today, where it breaks, and what it costs you." required aria-describedby="err-workflow"></textarea>
+              <span class="err" id="err-workflow"></span>
+            </div>
+            <div class="field field--full">
+              <label for="wf-tools">Tools used today <small>(optional)</small></label>
+              <textarea id="wf-tools" name="currentTools" rows="2" placeholder="Spreadsheets, email, a tool that almost works…"></textarea>
+              <span class="err"></span>
+            </div>
+            <div class="field">
+              <label for="wf-hours">Hours lost per week</label>
+              <select id="wf-hours" name="hoursPerWeek">
+                <option>Under 2</option><option selected>2–5</option><option>5–10</option><option>10+</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="wf-urgency">Urgency</label>
+              <select id="wf-urgency" name="urgency">
+                <option>Exploring</option><option selected>This quarter</option><option>This month</option>
+              </select>
+            </div>
+            <p class="hp" aria-hidden="true">
+              <label for="wf-company-url">Company URL</label>
+              <input id="wf-company-url" name="companyUrl" type="text" tabindex="-1" autocomplete="off">
+            </p>
+            <div class="wf__actions field--full">
+              <button class="btn" type="submit">Send workflow <span aria-hidden="true">→</span></button>
+              <p class="wf__status" data-status role="status" aria-live="polite"></p>
+            </div>
+          </form>
+
+          <div class="wf__panel" data-fallback hidden>
+            <p class="wf__kicker">Not connected yet</p>
+            <h3>Your message was not sent.</h3>
+            <p>Submissions are not connected yet. Copy or download this and email it to <a href="mailto:info@altairex.com">info@altairex.com</a>.</p>
+            <pre data-json></pre>
+            <div class="wf__buttons">
+              <button class="btn btn--sm" type="button" data-copy>Copy JSON</button>
+              <button class="btn btn--sm btn--ghost" type="button" data-download>Download .json</button>
+              <button class="btn btn--sm btn--ghost" type="button" data-edit>Edit answers</button>
+            </div>
+          </div>
+
+          <div class="wf__panel" data-success hidden>
+            <p class="wf__kicker">Received</p>
+            <h3>Thank you. We have your workflow.</h3>
+            <p>We will read it and come back with a point of view.</p>
+          </div>
+
+          <noscript><p class="wf__noscript">JavaScript is off. Email <a href="mailto:info@altairex.com">info@altairex.com</a> with your workflow and we will take it from there.</p></noscript>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="deck-controls" id="dots" aria-label="Slides"></nav>
+</div>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Keys: ← → ↑ ↓ Space PgUp PgDn Home End · wheel · swipe · dots · #3 in the URL
+   =========================================== */
+(() => {
+  const stage = document.getElementById("deckStage");
+  /* Slides in presentation order: the stage slides plus the full-window form layer (6) */
+  const slides = [...document.querySelectorAll("[data-n]")].sort((a, b) => a.dataset.n - b.dataset.n);
+  const scroller = () => slides[cur].querySelector(".free__scroll"); /* only the form layer scrolls */
+  const canScroll = (el) => el && el.scrollHeight > el.clientHeight + 2;
+  const dotsEl = document.getElementById("dots");
+  let cur = -1, lock = false;
+
+  /* Size the stage so it covers the whole window, with no bars.
+     Landscape: scale the 1920x1080 design to fit, then let the stage grow (W x H >= 1920 x 1080) to fill
+                the remaining width or height; the design box sits centred in it (--ox / --oy).
+     Portrait:  the stage is 720 wide and as tall as needed, scaled to the full width. */
+  const fit = () => {
+    const vw = innerWidth, vh = innerHeight;
+    const portrait = vw < vh;
+    /* portrait: 720 wide on phones; squarer screens (tablets) get a wider stage so it is never shorter than 1250 */
+    const s = portrait ? vw / Math.max(720, (1250 * vw) / vh) : Math.min(vw / 1920, vh / 1080);
+    const W = vw / s, H = vh / s;
+    document.documentElement.classList.toggle("portrait", portrait);
+    const st = stage.style;
+    st.setProperty("--W", W + "px");
+    st.setProperty("--H", H + "px");
+    st.setProperty("--ox", (W - 1920) / 2 + "px");
+    st.setProperty("--oy", (H - 1080) / 2 + "px");
+    st.transform = `scale(${s})`;
+  };
+  fit(); addEventListener("resize", fit);
+
+  /* Split headings into words so they rise one by one (chips and pills count as one word) */
+  document.querySelectorAll(".h, .fh").forEach((h) => {
+    let i = 0;
+    [...h.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((t) => {
+          if (!t) return;
+          if (/^\s+$/.test(t)) return frag.append(t);
+          const s = document.createElement("span");
+          s.className = "w"; s.style.setProperty("--i", i++); s.textContent = t; frag.append(s);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1 && n.tagName !== "BR") {
+        n.classList.add("w"); n.style.setProperty("--i", i++);
+      }
+    });
+  });
+
+  /* Dots */
+  slides.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.setAttribute("aria-label", `Slide ${i + 1}`);
+    b.addEventListener("click", () => go(i));
+    dotsEl.append(b);
+  });
+
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    if (n === cur) return;
+    slides.forEach((s, i) => {
+      s.classList.toggle("active", i === n);
+      s.classList.toggle("visible", i === n);
+    });
+    [...dotsEl.children].forEach((d, i) => d.classList.toggle("on", i === n));
+    cur = n;
+    history.replaceState(null, "", "#" + (n + 1));
+  }
+  const next = () => go(cur + 1), prev = () => go(cur - 1);
+
+  addEventListener("keydown", (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest?.("input, select, textarea, button")) return; /* typing and form controls keep their keys */
+    const k = e.key;
+    /* on the form layer the vertical keys scroll it natively; only left/right change slide */
+    if (slides[cur].classList.contains("free") && ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "Enter", "Backspace"].includes(k)) return;
+    if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(k) && e.target.tagName !== "A") { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+    else if (k === "Home") go(0);
+    else if (k === "End") go(slides.length - 1);
+  });
+
+  /* Wheel: one slide per gesture. The form layer scrolls first and only changes slide at its top or bottom edge */
+  addEventListener("wheel", (e) => {
+    const sc = scroller();
+    if (canScroll(sc)) {
+      const max = sc.scrollHeight - sc.clientHeight;
+      if ((e.deltaY > 0 && sc.scrollTop < max - 2) || (e.deltaY < 0 && sc.scrollTop > 2)) return;
+    }
+    if (lock || Math.abs(e.deltaY) < 30) return;
+    lock = true; setTimeout(() => (lock = false), 900);
+    e.deltaY > 0 ? next() : prev();
+  }, { passive: true });
+
+  /* Swipe. On a scrolling form layer, vertical swipes scroll it and only horizontal swipes change slide */
+  let tx = 0, ty = 0;
+  addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 50) return;
+    if (canScroll(scroller()) && Math.abs(dy) >= Math.abs(dx)) return;
+    (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? next() : prev();
+  }, { passive: true });
+
+  /* Links that jump to a slide, e.g. the button on slide 5 */
+  document.querySelectorAll("[data-go]").forEach((a) =>
+    a.addEventListener("click", (e) => { e.preventDefault(); go(Number(a.dataset.go) - 1); }));
+  const fromHash = () => go((parseInt(location.hash.slice(1), 10) || 1) - 1);
+  addEventListener("hashchange", fromHash);
+
+  /* === WORKFLOW FORM (slide 6) === */
+  const FIELDS = ["name", "email", "company", "role", "workflow", "currentTools", "hoursPerWeek", "urgency"];
+  const REQUIRED = {
+    name: "Add your name.",
+    email: "Add a valid work email.",
+    company: "Add your company.",
+    workflow: "Describe the workflow."
+  };
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  /* pure: returns { field: message } for every problem, {} when valid */
+  function validate(v) {
+    const errs = {};
+    for (const k in REQUIRED) if (!String(v[k] || "").trim()) errs[k] = REQUIRED[k];
+    if (!errs.email && !EMAIL_RE.test(String(v.email).trim())) errs.email = REQUIRED.email;
+    return errs;
+  }
+
+  /* pure: the exact JSON shape used by bento.html */
+  function buildPayload(v, now = new Date()) {
+    const p = { type: "workflow-submission", submittedAt: now.toISOString() };
+    FIELDS.forEach((k) => { p[k] = String(v[k] || "").trim(); });
+    return p;
+  }
+  window.altairexForm = { validate, buildPayload }; /* test hook */
+
+  const form = document.querySelector("[data-form]");
+  const wf = document.querySelector("[data-wf]");
+  const statusEl = document.querySelector("[data-status]");
+  const fallback = document.querySelector("[data-fallback]");
+  const success = document.querySelector("[data-success]");
+  const jsonEl = document.querySelector("[data-json]");
+  const copyBtn = document.querySelector("[data-copy]");
+
+  /* swap the form for a panel without letting the card collapse */
+  const showPanel = (panel) => {
+    wf.style.minHeight = wf.offsetHeight + "px";
+    form.hidden = true;
+    panel.hidden = false;
+  };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const v = Object.fromEntries(new FormData(form));
+    form.querySelectorAll(".field").forEach((f) => {
+      f.classList.remove("has-err");
+      const err = f.querySelector(".err");
+      if (err) err.textContent = "";
+    });
+
+    if (v.companyUrl) { showPanel(success); return; } /* honeypot: pretend success, send nothing */
+
+    const errs = validate(v);
+    const keys = Object.keys(errs);
+    if (keys.length) {
+      keys.forEach((k) => {
+        const f = form.elements[k].closest(".field");
+        f.classList.add("has-err");
+        f.querySelector(".err").textContent = errs[k];
+      });
+      statusEl.textContent = `Please fix ${keys.length} field${keys.length > 1 ? "s" : ""}.`;
+      form.elements[keys[0]].focus();
+      return;
+    }
+    statusEl.textContent = "";
+
+    const payload = buildPayload(v);
+    const url = window.ALTAIREX_SUBMIT_URL;
+    if (!url) {
+      jsonEl.textContent = JSON.stringify(payload, null, 2);
+      showPanel(fallback);
+      return;
+    }
+
+    const btn = form.querySelector("[type=submit]");
+    btn.disabled = true;
+    statusEl.textContent = "Sending…";
+    try {
+      const res = await fetch(url, {
+        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      statusEl.textContent = "";
+      showPanel(success);
+    } catch {
+      statusEl.textContent = "Could not send. Check your connection and try again, or email info@altairex.com.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* fallback panel buttons */
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(jsonEl.textContent);
+      copyBtn.textContent = "Copied";
+    } catch {
+      const r = document.createRange();
+      r.selectNodeContents(jsonEl);
+      getSelection().removeAllRanges();
+      getSelection().addRange(r);
+      copyBtn.textContent = "Press Ctrl+C";
+    }
+    setTimeout(() => { copyBtn.textContent = "Copy JSON"; }, 2000);
+  });
+  document.querySelector("[data-download]").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([jsonEl.textContent], { type: "application/json" }));
+    a.download = "workflow.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  document.querySelector("[data-edit]").addEventListener("click", () => {
+    fallback.hidden = true;
+    form.hidden = false;
+  });
+
+  fromHash();
+})();
+</script>
+</body>
+</html>
